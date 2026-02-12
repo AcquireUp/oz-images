@@ -4,6 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # OS deps
 RUN apt-get update \
+  && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
@@ -32,6 +33,8 @@ RUN apt-get update \
     postgresql-contrib \
     postgis \
     postgresql-16-postgis-3 \
+    sudo \
+    unzip \
   && rm -rf /var/lib/apt/lists/*
 
 # Make postgres tooling available on PATH for scripts.
@@ -66,4 +69,18 @@ RUN rbenv install 3.4.5 \
   && gem install bundler \
   && rbenv rehash
 
-WORKDIR /root
+# Default non-root user
+RUN set -eux; \
+  useradd -m -s /bin/bash oz; \
+  mkdir -p /work; \
+  chown -R oz:oz /work /home/oz "$RBENV_ROOT"; \
+  echo "oz ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/oz; \
+  chmod 0440 /etc/sudoers.d/oz
+
+# Ensure gems/bundler are writable for the non-root default user.
+ENV GEM_HOME=/home/oz/.gem
+ENV BUNDLE_PATH=/home/oz/.bundle
+ENV PATH="$GEM_HOME/bin:$PATH"
+
+WORKDIR /work
+USER oz

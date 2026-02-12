@@ -9,9 +9,14 @@ This repo contains Docker build contexts for Oz/Warp environment base images.
 # example tag format: 2026-02-12
 IMAGE=YOUR_DOCKERHUB_USER/oz-toolchain:2026-02-12
 
-docker build -t "$IMAGE" -f images/oz-toolchain/Dockerfile images/oz-toolchain
-
-docker push "$IMAGE"
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --provenance=true \
+  --sbom=true \
+  --push \
+  -t "$IMAGE" \
+  -f images/oz-toolchain/Dockerfile \
+  images/oz-toolchain
 ```
 
 Notes:
